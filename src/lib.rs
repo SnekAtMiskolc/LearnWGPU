@@ -1,3 +1,4 @@
+use log::info;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -10,6 +11,7 @@ struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    color: wgpu::Color,
 }
 
 impl State {
@@ -80,12 +82,19 @@ impl State {
         };
         surface.configure(&device, &config);
 
+        let color = wgpu::Color {
+            r: 0.3,
+            g: 0.3,
+            b: 0.7,
+            a: 1.0,
+        };
         Self {
             surface,
             device,
             queue,
             config,
             size,
+            color,
         }
     }
 
@@ -100,6 +109,17 @@ impl State {
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
+        match event {
+            WindowEvent::CursorMoved { device_id, position, ..} => {
+                self.color = wgpu::Color {
+                    r: position.x / self.size.width as f64 ,
+                    g: position.y / self.size.height as f64 ,
+                    b: 0.7,
+                    a: 1.0,
+                }
+            },
+            _ => (),
+        };
         false
     }
 
@@ -125,12 +145,7 @@ impl State {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(self.color),
                         store: true,
                     },
                 })],
